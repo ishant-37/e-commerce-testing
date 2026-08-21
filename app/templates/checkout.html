@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Checkout</h1>
+
+    <div class="checkout-layout">
+        <!-- Shipping Form -->
+        <div class="checkout-form-section">
+            <h2>Shipping Information</h2>
+            <form id="checkout-form" onsubmit="handleCheckout(event)">
+                <div class="form-group">
+                    <label for="shipping_name" class="form-label">Full Name</label>
+                    <input type="text" id="shipping_name" name="shipping_name" class="form-input"
+                           placeholder="Recipient's full name" required>
+                    <span class="form-error" id="shipping_name-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="shipping_address" class="form-label">Street Address</label>
+                    <input type="text" id="shipping_address" name="shipping_address" class="form-input"
+                           placeholder="123 Main Street, Apt 4B" required>
+                    <span class="form-error" id="shipping_address-error"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shipping_city" class="form-label">City</label>
+                        <input type="text" id="shipping_city" name="shipping_city" class="form-input"
+                               placeholder="City" required>
+                        <span class="form-error" id="shipping_city-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_zip" class="form-label">ZIP Code</label>
+                        <input type="text" id="shipping_zip" name="shipping_zip" class="form-input"
+                               placeholder="12345" required>
+                        <span class="form-error" id="shipping_zip-error"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="shipping_phone" class="form-label">Phone Number</label>
+                    <input type="tel" id="shipping_phone" name="shipping_phone" class="form-input"
+                           placeholder="(555) 123-4567" required>
+                    <span class="form-error" id="shipping_phone-error"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-place-order">
+                    Place Order — ${{ "%.2f"|format(total) }}
+                </button>
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="checkout-summary">
+            <h2>Order Summary</h2>
+            <div class="checkout-items">
+                {% for item in items %}
+                    <div class="checkout-item">
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="checkout-item-image">
+                        <div class="checkout-item-info">
+                            <p class="checkout-item-name">{{ item.name }}</p>
+                            <p class="checkout-item-qty">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <span class="checkout-item-price">${{ "%.2f"|format(item.subtotal) }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+            <hr>
+            <div class="summary-row summary-total">
+                <span>Total</span>
+                <span id="checkout-total">${{ "%.2f"|format(total) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleCheckout(event) {
+    event.preventDefault();
+    clearErrors();
+
+    const fields = ['shipping_name', 'shipping_address', 'shipping_city', 'shipping_zip', 'shipping_phone'];
+    const data = {};
+    let hasError = false;
+
+    fields.forEach(field => {
+        const value = document.getElementById(field).value.trim();
+        if (!value) {
+            showFieldError(field, field.replace('shipping_', '').replace('_', ' ') + ' is required');
+            hasError = true;
+        }
+        data[field] = value;
+    });
+
+    if (hasError) return;
+
+    // Disable button to prevent double submission
+    const btn = document.getElementById('btn-place-order');
+    btn.disabled = true;
+    btn.textContent = 'Placing Order...';
+
+    try {
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showAlert('Order placed successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = '/order-confirmation/' + result.order.id;
+            }, 1000);
+        } else {
+            const errorMsg = Array.isArray(result.error) ? result.error.join(', ') : result.error;
+            showAlert(errorMsg, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Place Order — ${{ "%.2f"|format(total) }}';
+        }
+    } catch (error) {
+        showAlert('Network error. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Place Order — ${{ "%.2f"|format(total) }}';
+    }
+}
+</script>
+{% endblock %}

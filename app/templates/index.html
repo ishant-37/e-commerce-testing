@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to <span class="text-gradient">ShopQA</span></h1>
+        <p class="hero-subtitle">Your one-stop destination for Electronics, Clothing, Books & Home essentials</p>
+        <div class="hero-actions">
+            <a href="{{ url_for('products.products_page') }}" class="btn btn-primary btn-lg" id="btn-shop-now">Shop Now</a>
+            {% if not session.get('user_id') %}
+                <a href="{{ url_for('auth.register_page') }}" class="btn btn-outline btn-lg" id="btn-get-started">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Why Shop With Us</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📦</div>
+                <h3>Wide Selection</h3>
+                <p>Browse our catalog of 15+ quality products across 4 categories</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure Checkout</h3>
+                <p>Your data is safe with our secure order processing system</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Order Tracking</h3>
+                <p>Track your order history and view detailed order information</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Easy Search</h3>
+                <p>Find products quickly with our search and filter capabilities</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Our Products</h1>
+        <p class="page-subtitle">Browse our collection of quality products</p>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="filter-bar" id="filter-bar">
+        <form method="GET" action="{{ url_for('products.products_page') }}" class="filter-form" id="filter-form">
+            <div class="search-group">
+                <input type="text" name="search" id="search-input" class="form-input"
+                       placeholder="Search products..." value="{{ current_search }}">
+                <button type="submit" class="btn btn-primary" id="btn-search">Search</button>
+            </div>
+            <div class="filter-group">
+                <select name="category" id="category-filter" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        {% if current_search or current_category %}
+            <div class="active-filters">
+                <span class="filter-info">
+                    Showing {{ products|length }} result(s)
+                    {% if current_search %} for "<strong>{{ current_search }}</strong>"{% endif %}
+                    {% if current_category %} in <strong>{{ current_category }}</strong>{% endif %}
+                </span>
+                <a href="{{ url_for('products.products_page') }}" class="btn btn-outline btn-sm" id="btn-clear-filters">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Product Grid -->
+    {% if products %}
+        <div class="product-grid" id="product-grid">
+            {% for product in products %}
+                <div class="product-card" id="product-card-{{ product.id }}">
+                    <a href="{{ url_for('products.product_detail_page', product_id=product.id) }}">
+                        <div class="product-image">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy">
+                        </div>
+                    </a>
+                    <div class="product-info">
+                        <span class="product-category">{{ product.category }}</span>
+                        <h3 class="product-name">
+                            <a href="{{ url_for('products.product_detail_page', product_id=product.id) }}">
+                                {{ product.name }}
+                            </a>
+                        </h3>
+                        <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
+                        <div class="product-actions">
+                            {% if session.get('user_id') %}
+                                <button class="btn btn-primary btn-sm" id="btn-add-cart-{{ product.id }}"
+                                        onclick="addToCart({{ product.id }})">Add to Cart</button>
+                            {% else %}
+                                <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline btn-sm">Login to Buy</a>
+                            {% endif %}
+                            <a href="{{ url_for('products.product_detail_page', product_id=product.id) }}"
+                               class="btn btn-outline btn-sm" id="btn-view-{{ product.id }}">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state" id="no-products-message">
+            <div class="empty-icon">🔍</div>
+            <h3>No products found</h3>
+            <p>Try a different search term or clear your filters.</p>
+            <a href="{{ url_for('products.products_page') }}" class="btn btn-primary">View All Products</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

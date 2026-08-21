@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="E-Commerce QA Project — A portfolio project demonstrating QA testing skills">
+    <title>{% block title %}ShopQA{% endblock %} | E-Commerce QA Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('products.products_page') }}" class="nav-logo" id="nav-logo">
+                <span class="logo-icon">🛒</span> ShopQA
+            </a>
+
+            <div class="nav-links">
+                <a href="{{ url_for('products.products_page') }}" class="nav-link" id="nav-products">Products</a>
+
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('cart.cart_page') }}" class="nav-link" id="nav-cart">
+                        🛒 Cart
+                    </a>
+                    <a href="{{ url_for('orders.orders_page') }}" class="nav-link" id="nav-orders">Orders</a>
+                    <span class="nav-user" id="nav-username">Hello, {{ session.get('user_name', 'User') }}</span>
+                    <button class="btn btn-outline btn-sm" id="btn-logout" onclick="logout()">Logout</button>
+                {% else %}
+                    <a href="{{ url_for('auth.login_page') }}" class="nav-link" id="nav-login">Login</a>
+                    <a href="{{ url_for('auth.register_page') }}" class="btn btn-primary btn-sm" id="nav-register">Register</a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile menu toggle -->
+            <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileMenu()">☰</button>
+        </div>
+
+        <!-- Mobile menu -->
+        <div class="nav-mobile" id="nav-mobile">
+            <a href="{{ url_for('products.products_page') }}" class="nav-link">Products</a>
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('cart.cart_page') }}" class="nav-link">🛒 Cart</a>
+                <a href="{{ url_for('orders.orders_page') }}" class="nav-link">Orders</a>
+                <span class="nav-user">Hello, {{ session.get('user_name', 'User') }}</span>
+                <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+            {% else %}
+                <a href="{{ url_for('auth.login_page') }}" class="nav-link">Login</a>
+                <a href="{{ url_for('auth.register_page') }}" class="btn btn-primary btn-sm">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Alert container for JS messages -->
+    <div id="alert-container" class="flash-container"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 ShopQA — E-Commerce QA Testing Project</p>
+            <p class="footer-note">Portfolio project for QA Engineer demonstration</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="{{ url_for('products.products_page') }}" class="back-link" id="back-to-products">← Back to Products</a>
+
+    <div class="product-detail" id="product-detail-{{ product.id }}">
+        <div class="product-detail-image">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+        </div>
+        <div class="product-detail-info">
+            <span class="product-category">{{ product.category }}</span>
+            <h1 class="product-detail-name" id="product-name">{{ product.name }}</h1>
+            <p class="product-detail-price" id="product-price">${{ "%.2f"|format(product.price) }}</p>
+
+            <div class="product-detail-meta">
+                <p><strong>Availability:</strong>
+                    {% if product.quantity > 0 %}
+                        <span class="text-success" id="product-stock">In Stock ({{ product.quantity }} available)</span>
+                    {% else %}
+                        <span class="text-danger" id="product-stock">Out of Stock</span>
+                    {% endif %}
+                </p>
+                <p><strong>Product ID:</strong> <span id="product-id">{{ product.id }}</span></p>
+            </div>
+
+            <div class="product-detail-description">
+                <h3>Description</h3>
+                <p id="product-description">{{ product.description }}</p>
+            </div>
+
+            {% if session.get('user_id') %}
+                <div class="product-detail-actions">
+                    <div class="quantity-selector">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" value="1" min="1" max="{{ product.quantity }}" class="form-input quantity-input">
+                    </div>
+                    <button class="btn btn-primary btn-lg" id="btn-add-to-cart"
+                            onclick="addToCartWithQty({{ product.id }})">Add to Cart</button>
+                </div>
+            {% else %}
+                <div class="product-detail-actions">
+                    <a href="{{ url_for('auth.login_page') }}" class="btn btn-primary btn-lg">Login to Purchase</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addToCartWithQty(productId) {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    if (quantity < 1) {
+        showAlert('Please enter a valid quantity', 'error');
+        return;
+    }
+    addToCart(productId, quantity);
+}
+</script>
+{% endblock %}

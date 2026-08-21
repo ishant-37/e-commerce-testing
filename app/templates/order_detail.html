@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="{{ url_for('orders.orders_page') }}" class="back-link">← Back to Orders</a>
+
+    <div class="order-detail-card" id="order-detail-{{ order.id }}">
+        <div class="order-detail-header">
+            <div>
+                <h1>Order #{{ order.id }}</h1>
+                <p class="order-date">Placed on {{ order.created_at }}</p>
+            </div>
+            <span class="status-badge status-{{ order.status|lower }}" id="order-status">{{ order.status }}</span>
+        </div>
+
+        <div class="order-detail-items">
+            <h3>Items</h3>
+            {% for item in order.items %}
+                <div class="order-detail-item">
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="order-item-image">
+                    <div class="order-item-info">
+                        <p class="order-item-name">{{ item.name }}</p>
+                        <p class="order-item-qty">Quantity: {{ item.quantity }}</p>
+                        <p class="order-item-price">${{ "%.2f"|format(item.price) }} each</p>
+                    </div>
+                    <span class="order-item-subtotal">${{ "%.2f"|format(item.subtotal) }}</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="order-detail-footer">
+            <div class="order-shipping">
+                <h3>Shipping Address</h3>
+                <p>{{ order.shipping_name }}<br>
+                   {{ order.shipping_address }}<br>
+                   {{ order.shipping_city }}, {{ order.shipping_zip }}<br>
+                   Phone: {{ order.shipping_phone }}</p>
+            </div>
+            <div class="order-total-section">
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <span id="order-total">${{ "%.2f"|format(order.total_amount) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

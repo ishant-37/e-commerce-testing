@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirmation-card" id="order-confirmation">
+        <div class="confirmation-icon">✅</div>
+        <h1 class="confirmation-title">Order Placed Successfully!</h1>
+        <p class="confirmation-subtitle">Thank you for your purchase</p>
+
+        <div class="confirmation-details">
+            <div class="detail-row">
+                <span>Order ID</span>
+                <strong id="confirmation-order-id">#{{ order.id }}</strong>
+            </div>
+            <div class="detail-row">
+                <span>Status</span>
+                <span class="status-badge status-{{ order.status|lower }}" id="confirmation-status">{{ order.status }}</span>
+            </div>
+            <div class="detail-row">
+                <span>Total Amount</span>
+                <strong id="confirmation-total">${{ "%.2f"|format(order.total_amount) }}</strong>
+            </div>
+            <div class="detail-row">
+                <span>Date</span>
+                <span>{{ order.created_at }}</span>
+            </div>
+        </div>
+
+        <h3>Items Ordered</h3>
+        <div class="confirmation-items">
+            {% for item in order.items %}
+                <div class="confirmation-item">
+                    <span>{{ item.name }} × {{ item.quantity }}</span>
+                    <span>${{ "%.2f"|format(item.subtotal) }}</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="confirmation-shipping">
+            <h3>Shipping To</h3>
+            <p>{{ order.shipping_name }}<br>
+               {{ order.shipping_address }}<br>
+               {{ order.shipping_city }}, {{ order.shipping_zip }}<br>
+               Phone: {{ order.shipping_phone }}</p>
+        </div>
+
+        <div class="confirmation-actions">
+            <a href="{{ url_for('orders.orders_page') }}" class="btn btn-primary" id="btn-view-orders">View All Orders</a>
+            <a href="{{ url_for('products.products_page') }}" class="btn btn-outline">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
