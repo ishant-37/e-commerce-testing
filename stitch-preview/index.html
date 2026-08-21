@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ecomarec — Stitch Preview</title>
+  <style>
+    :root { --navy:#1a2b3c; --teal:#2dd4bf; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background:#0b1c30; color:#eaf1ff; }
+    header { padding:32px; text-align:center; background:linear-gradient(180deg,#1a2b3c,#0b1c30); }
+    header h1 { margin:0; font-size:28px; letter-spacing:-0.02em; }
+    header p { margin:8px 0 0; opacity:.7; }
+    .grid { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; padding:32px; }
+    .card { background:#16283a; border-radius:16px; padding:20px; width:280px; text-align:center; text-decoration:none; color:#eaf1ff; transition:transform .15s ease, box-shadow .15s ease; border:1px solid #2a3f54; }
+    .card:hover { transform:translateY(-4px); box-shadow:0 12px 32px -4px rgba(26,43,60,.6); }
+    .card .num { display:inline-block; width:40px; height:40px; line-height:40px; border-radius:9999px; background:var(--teal); color:#06241f; font-weight:700; margin-bottom:12px; }
+    .card h2 { margin:0 0 6px; font-size:18px; }
+    .card span { opacity:.7; font-size:14px; }
+    footer { text-align:center; padding:24px; opacity:.5; font-size:13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ecomarec</h1>
+    <p>Product-based e-commerce template — Stitch preview</p>
+  </header>
+  <div class="grid">
+    <a class="card" href="catalog.html" target="_blank">
+      <div class="num">1</div>
+      <h2>Product Catalog</h2>
+      <span>Search · categories · product grid</span>
+    </a>
+    <a class="card" href="product-detail.html" target="_blank">
+      <div class="num">2</div>
+      <h2>Product Detail</h2>
+      <span>Image · options · add to cart</span>
+    </a>
+  </div>
+  <footer>Generated with Google Stitch · Ecomarec Modern Retail design system</footer>
+</body>
+</html>

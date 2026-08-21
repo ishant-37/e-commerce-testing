@@ -16,7 +16,7 @@
 
         <div class="order-detail-items">
             <h3>Items</h3>
-            {% for item in order.items %}
+            {% for item in order['items'] %}
                 <div class="order-detail-item">
                     <img src="{{ item.image_url }}" alt="{{ item.name }}" class="order-item-image">
                     <div class="order-item-info">

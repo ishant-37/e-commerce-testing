@@ -29,7 +29,7 @@
 
         <h3>Items Ordered</h3>
         <div class="confirmation-items">
-            {% for item in order.items %}
+            {% for item in order['items'] %}
                 <div class="confirmation-item">
                     <span>{{ item.name }} × {{ item.quantity }}</span>
                     <span>${{ "%.2f"|format(item.subtotal) }}</span>
