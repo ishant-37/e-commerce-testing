@@ -39,3 +39,7 @@ build/
 
 # SQLite database (auto-generated on startup)
 *.db
+
+error.html
+reports/
+.pytest_cache/
