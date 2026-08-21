@@ -36,3 +36,6 @@ build/
 
 # Logs
 *.log
+
+# SQLite database (auto-generated on startup)
+*.db

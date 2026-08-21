@@ -3,7 +3,7 @@ Order Model — Handles order creation, retrieval, and order history.
 Converts cart items into a permanent order record.
 """
 
-from app.database import get_db_connection
+from app.database import get_db_connection, dict_from_row, dicts_from_rows
 from app.models import cart as cart_model
 
 
@@ -40,7 +40,7 @@ def create_order(user_id, shipping_name, shipping_address, shipping_city, shippi
         cursor.execute("""
             INSERT INTO orders (user_id, total_amount, status, shipping_name, shipping_address,
                                 shipping_city, shipping_zip, shipping_phone)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (user_id, total_amount, 'Confirmed', shipping_name, shipping_address,
               shipping_city, shipping_zip, shipping_phone))
         order_id = cursor.lastrowid
@@ -49,7 +49,7 @@ def create_order(user_id, shipping_name, shipping_address, shipping_city, shippi
         for item in items:
             cursor.execute("""
                 INSERT INTO order_items (order_id, product_id, quantity, price)
-                VALUES (%s, %s, %s, %s)
+                VALUES (?, ?, ?, ?)
             """, (order_id, item['product_id'], item['quantity'], float(item['price'])))
 
         conn.commit()
@@ -62,7 +62,6 @@ def create_order(user_id, shipping_name, shipping_address, shipping_city, shippi
         conn.rollback()
         raise
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -77,17 +76,16 @@ def get_orders(user_id):
         list[dict]: List of order records.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         cursor.execute("""
             SELECT id, total_amount, status, created_at
-            FROM orders WHERE user_id = %s
+            FROM orders WHERE user_id = ?
             ORDER BY created_at DESC
         """, (user_id,))
-        orders = cursor.fetchall()
+        orders = dicts_from_rows(cursor.fetchall())
         return orders
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -103,16 +101,17 @@ def get_order_by_id(order_id, user_id):
         dict or None: Order record with 'items' key, or None if not found.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         # Get order
         cursor.execute("""
-            SELECT * FROM orders WHERE id = %s AND user_id = %s
+            SELECT * FROM orders WHERE id = ? AND user_id = ?
         """, (order_id, user_id))
-        order = cursor.fetchone()
-
-        if not order:
+        row = cursor.fetchone()
+        if not row:
             return None
+
+        order = dict_from_row(row)
 
         # Get order items
         cursor.execute("""
@@ -121,11 +120,10 @@ def get_order_by_id(order_id, user_id):
                    (oi.quantity * oi.price) AS subtotal
             FROM order_items oi
             JOIN products p ON oi.product_id = p.id
-            WHERE oi.order_id = %s
+            WHERE oi.order_id = ?
         """, (order_id,))
-        order['items'] = cursor.fetchall()
+        order['items'] = dicts_from_rows(cursor.fetchall())
 
         return order
     finally:
-        cursor.close()
         conn.close()

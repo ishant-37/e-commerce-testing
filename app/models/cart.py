@@ -3,7 +3,7 @@ Cart Model — Handles cart creation, adding/updating/removing items, and cart r
 Each user gets one cart (created on first add-to-cart).
 """
 
-from app.database import get_db_connection
+from app.database import get_db_connection, dict_from_row, dicts_from_rows
 
 
 def get_or_create_cart(user_id):
@@ -17,19 +17,18 @@ def get_or_create_cart(user_id):
         int: The cart ID.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id FROM cart WHERE user_id = %s", (user_id,))
+        cursor.execute("SELECT id FROM cart WHERE user_id = ?", (user_id,))
         cart = cursor.fetchone()
         if cart:
             return cart['id']
 
         # Create new cart
-        cursor.execute("INSERT INTO cart (user_id) VALUES (%s)", (user_id,))
+        cursor.execute("INSERT INTO cart (user_id) VALUES (?)", (user_id,))
         conn.commit()
         return cursor.lastrowid
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -44,7 +43,7 @@ def get_cart_items(user_id):
         list[dict]: Cart items with product name, price, quantity, and subtotal.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         query = """
             SELECT ci.id, ci.cart_id, ci.product_id, ci.quantity,
@@ -53,14 +52,13 @@ def get_cart_items(user_id):
             FROM cart_items ci
             JOIN cart c ON ci.cart_id = c.id
             JOIN products p ON ci.product_id = p.id
-            WHERE c.user_id = %s
+            WHERE c.user_id = ?
             ORDER BY ci.id ASC
         """
         cursor.execute(query, (user_id,))
-        items = cursor.fetchall()
+        items = dicts_from_rows(cursor.fetchall())
         return items
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -94,32 +92,32 @@ def add_item(user_id, product_id, quantity=1):
     """
     cart_id = get_or_create_cart(user_id)
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         # Check if product already in cart
         cursor.execute(
-            "SELECT id, quantity FROM cart_items WHERE cart_id = %s AND product_id = %s",
+            "SELECT id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ?",
             (cart_id, product_id)
         )
         existing = cursor.fetchone()
 
         if existing:
+            existing = dict(existing)
             new_qty = existing['quantity'] + quantity
             cursor.execute(
-                "UPDATE cart_items SET quantity = %s WHERE id = %s",
+                "UPDATE cart_items SET quantity = ? WHERE id = ?",
                 (new_qty, existing['id'])
             )
             conn.commit()
             return {'id': existing['id'], 'cart_id': cart_id, 'product_id': product_id, 'quantity': new_qty}
         else:
             cursor.execute(
-                "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (%s, %s, %s)",
+                "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)",
                 (cart_id, product_id, quantity)
             )
             conn.commit()
             return {'id': cursor.lastrowid, 'cart_id': cart_id, 'product_id': product_id, 'quantity': quantity}
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -136,27 +134,26 @@ def update_item(item_id, quantity, user_id):
         bool: True if updated, False if item not found or unauthorized.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         # Verify the item belongs to this user
         cursor.execute("""
             SELECT ci.id FROM cart_items ci
             JOIN cart c ON ci.cart_id = c.id
-            WHERE ci.id = %s AND c.user_id = %s
+            WHERE ci.id = ? AND c.user_id = ?
         """, (item_id, user_id))
         item = cursor.fetchone()
         if not item:
             return False
 
         if quantity <= 0:
-            cursor.execute("DELETE FROM cart_items WHERE id = %s", (item_id,))
+            cursor.execute("DELETE FROM cart_items WHERE id = ?", (item_id,))
         else:
-            cursor.execute("UPDATE cart_items SET quantity = %s WHERE id = %s", (quantity, item_id))
+            cursor.execute("UPDATE cart_items SET quantity = ? WHERE id = ?", (quantity, item_id))
 
         conn.commit()
         return True
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -172,22 +169,21 @@ def remove_item(item_id, user_id):
         bool: True if removed, False if not found or unauthorized.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         cursor.execute("""
             SELECT ci.id FROM cart_items ci
             JOIN cart c ON ci.cart_id = c.id
-            WHERE ci.id = %s AND c.user_id = %s
+            WHERE ci.id = ? AND c.user_id = ?
         """, (item_id, user_id))
         item = cursor.fetchone()
         if not item:
             return False
 
-        cursor.execute("DELETE FROM cart_items WHERE id = %s", (item_id,))
+        cursor.execute("DELETE FROM cart_items WHERE id = ?", (item_id,))
         conn.commit()
         return True
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -201,12 +197,12 @@ def clear_cart(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        # SQLite doesn't support DELETE with JOIN, use subquery instead
         cursor.execute("""
-            DELETE ci FROM cart_items ci
-            JOIN cart c ON ci.cart_id = c.id
-            WHERE c.user_id = %s
+            DELETE FROM cart_items WHERE cart_id IN (
+                SELECT id FROM cart WHERE user_id = ?
+            )
         """, (user_id,))
         conn.commit()
     finally:
-        cursor.close()
         conn.close()

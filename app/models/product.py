@@ -2,7 +2,7 @@
 Product Model — Handles product listing, search, filtering, and detail retrieval.
 """
 
-from app.database import get_db_connection
+from app.database import get_db_connection, dict_from_row, dicts_from_rows
 
 
 def get_all(search=None, category=None):
@@ -17,27 +17,26 @@ def get_all(search=None, category=None):
         list[dict]: List of product records.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
         query = "SELECT * FROM products WHERE 1=1"
         params = []
 
         if search:
-            query += " AND (name LIKE %s OR description LIKE %s)"
+            query += " AND (name LIKE ? OR description LIKE ?)"
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
 
         if category:
-            query += " AND category = %s"
+            query += " AND category = ?"
             params.append(category)
 
         query += " ORDER BY id ASC"
 
         cursor.execute(query, params)
-        products = cursor.fetchall()
+        products = dicts_from_rows(cursor.fetchall())
         return products
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -52,13 +51,12 @@ def get_by_id(product_id):
         dict or None: Product record or None if not found.
     """
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
-        cursor.execute("SELECT * FROM products WHERE id = %s", (product_id,))
-        product = cursor.fetchone()
+        cursor.execute("SELECT * FROM products WHERE id = ?", (product_id,))
+        product = dict_from_row(cursor.fetchone())
         return product
     finally:
-        cursor.close()
         conn.close()
 
 
@@ -76,5 +74,4 @@ def get_categories():
         categories = [row[0] for row in cursor.fetchall()]
         return categories
     finally:
-        cursor.close()
         conn.close()
