@@ -1,4 +1,4 @@
-# E-Commerce QA Project
+# E-Commerce QA Project...
 
 A Flask and MySQL e-commerce application used as a hands-on QA project. The repository includes a small storefront, session-based authentication, product browsing, cart management, checkout and order history, REST-style JSON endpoints, database scripts, and spaces for automated and manual test assets.
 
